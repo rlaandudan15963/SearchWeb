@@ -14,5 +14,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="C:/Users/kmlim/Desktop/3-2/데이터프로그래밍/DBP실습/ojdbc8.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
