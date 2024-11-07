@@ -9,17 +9,40 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 20px;
+            flex-direction: column;
+            align-items: center;
             margin-top: 20px;
             position: relative;
+        }
+
+        /* 상단 버튼 컨테이너 */
+        .top-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            padding-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        .top-buttons-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .top-buttons-container button:hover {
+            background-color: #555;
         }
 
         /* 달력 크기 확대 */
         #calendar-container {
             width: 1200px;
-            position: relative;
+            margin-top: 10px;
         }
 
         /* 스케줄 추가 폼 및 이벤트 모달 스타일 */
@@ -86,80 +109,6 @@
             background-color: #6c757d;
         }
 
-        /* 로그인 창 스타일 */
-        aside#login-aside {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 300px;
-            height: 100%;
-            background-color: #f4f4f4;
-            padding: 20px;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 1000;
-        }
-
-        aside#login-aside h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        aside#login-aside label {
-            display: block;
-            margin-top: 10px;
-        }
-
-        aside#login-aside input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        aside#login-aside button {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        aside#login-aside button.login-btn {
-            background-color: #007bff;
-        }
-
-        aside#login-aside button.register-btn {
-            background-color: #28a745;
-        }
-
-        aside#login-aside button.close-btn {
-            background-color: #dc3545;
-        }
-
-        /* 로그인 버튼 스타일 */
-        #show-login-btn {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: #333;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-
-        #show-login-btn:hover {
-            background-color: #555;
-        }
-
         /* 스케줄 추가 버튼 스타일 */
         #show-schedule-form-btn {
             padding: 6px 12px;
@@ -174,8 +123,12 @@
     </style>
 </head>
 <body>
-<!-- 로그인 버튼 -->
-<button id="show-login-btn" onclick="toggleLoginAside()">로그인</button>
+
+<!-- 상단 오른쪽에 위치한 로그인 및 회원가입 버튼 -->
+<div class="top-buttons-container">
+    <button onclick="window.location.href='login.html'">로그인</button>
+    <button onclick="window.location.href='register.html'">회원가입</button>
+</div>
 
 <!-- 스케줄 추가 폼 -->
 <div id="schedule-form">
@@ -221,57 +174,11 @@
     <div id="calendar"></div>
 </div>
 
-<!-- 로그인 창 -->
-<aside id="login-aside">
-    <h2>로그인</h2>
-    <label for="login-username">사용자명</label>
-    <input type="text" id="login-username" placeholder="사용자명 입력">
-
-    <label for="login-password">비밀번호</label>
-    <input type="password" id="login-password" placeholder="비밀번호 입력">
-
-    <button class="login-btn" onclick="login()">로그인</button>
-    <button class="register-btn" onclick="window.location.href='register.html'">회원가입</button>
-    <button class="close-btn" onclick="toggleLoginAside()">닫기</button>
-</aside>
-
 <script>
     let calendar;
     let selectedEvent;
     let colorIndex = 0;
     const colors = ["#ff0000", "#0000ff", "#008000"]; // 빨간색, 파란색, 초록색 순서
-
-    function toggleLoginAside() {
-        const aside = document.getElementById("login-aside");
-        aside.style.display = aside.style.display === "none" ? "block" : "none";
-    }
-
-    function login() {
-        const username = document.getElementById("login-username").value;
-        const password = document.getElementById("login-password").value;
-        alert(`로그인 정보 - 사용자명: ${username}, 비밀번호: ${password}`);
-    }
-
-    function register() {
-        alert("회원가입 페이지로 이동합니다.");
-    }
-
-    function toggleScheduleForm() {
-        const form = document.getElementById("schedule-form");
-        form.style.display = form.style.display === "none" ? "block" : "none";
-    }
-
-    function toggleEventModal(event = null) {
-        const modal = document.getElementById("event-modal");
-        if (event) {
-            selectedEvent = event;
-            document.getElementById("eventTitle").value = event.title;
-            document.getElementById("eventDescription").value = event.extendedProps.description || '';
-            document.getElementById("eventStartDate").value = event.start.toISOString().slice(0, 16);
-            document.getElementById("eventEndDate").value = event.end ? event.end.toISOString().slice(0, 16) : event.start.toISOString().slice(0, 16);
-        }
-        modal.style.display = modal.style.display === "none" ? "block" : "none";
-    }
 
     function addScheduleFromForm() {
         const title = document.getElementById("scheduleTitle").value;
@@ -291,7 +198,7 @@
             title: title,
             start: startDate,
             end: endDate,
-            allDay: false,  // 시간 표시를 위해 allDay를 false로 설정
+            allDay: false,
             backgroundColor: color,
             borderColor: color,
             description: description
@@ -305,6 +212,23 @@
         document.getElementById("scheduleEndDate").value = '';
         document.getElementById("schedule-form").style.display = 'none';
         alert("스케줄이 추가되었습니다!");
+    }
+
+    function toggleScheduleForm() {
+        const form = document.getElementById("schedule-form");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    function toggleEventModal(event = null) {
+        const modal = document.getElementById("event-modal");
+        if (event) {
+            selectedEvent = event;
+            document.getElementById("eventTitle").value = event.title;
+            document.getElementById("eventDescription").value = event.extendedProps.description || '';
+            document.getElementById("eventStartDate").value = event.start.toISOString().slice(0, 16);
+            document.getElementById("eventEndDate").value = event.end ? event.end.toISOString().slice(0, 16) : event.start.toISOString().slice(0, 16);
+        }
+        modal.style.display = modal.style.display === "none" ? "block" : "none";
     }
 
     function updateEvent() {
