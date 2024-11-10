@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원가입</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f8f9fa;
+    }
+
+    #register-form {
+      width: 300px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    #register-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #register-form label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    #register-form input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    #register-form button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      color: white;
+      background-color: #28a745;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="register-form">
+  <h2>회원가입</h2>
+  <label for="register-username">아이디</label>
+  <input type="text" id="register-username" placeholder="아이디 입력" required>
+
+  <label for="register-password">비밀번호</label>
+  <input type="password" id="register-password" placeholder="비밀번호 입력" required>
+
+  <label for="register-email">이메일</label>
+  <input type="email" id="register-email" placeholder="이메일 입력" required>
+
+  <label for="register-name">이름</label>
+  <input type="text" id="register-name" placeholder="이름 입력" required>
+
+  <label for="register-age">나이</label>
+  <input type="number" id="register-age" placeholder="나이 입력" required>
+
+  <label for="register-phone">전화번호</label>
+  <input type="tel" id="register-phone" placeholder="전화번호 입력" required>
+
+  <button onclick="register()">회원가입</button>
+</div>
+
+<script>
+  async function register() {
+    const username = document.getElementById("register-username").value;
+    const password = document.getElementById("register-password").value;
+    const email = document.getElementById("register-email").value;
+    const name = document.getElementById("register-name").value;
+    const age = document.getElementById("register-age").value;
+    const phone = document.getElementById("register-phone").value;
+
+    try {
+      const response = await fetch("/SCWeb/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password, email, name, age, phone })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("회원가입 성공! 로그인 페이지로 이동합니다.");
+        window.location.href = "login.html"; // 로그인 페이지로 이동
+      } else {
+        alert("회원가입 실패. 아이디가 이미 존재하거나 다른 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      alert("회원가입 요청 중 오류가 발생했습니다.");
+      console.error("Error:", error);
+    }
+    
+  }
+</script>
+
+</body>
+</html>
