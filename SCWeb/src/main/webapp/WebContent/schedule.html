@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>스케줄 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        /* 상단 버튼 컨테이너 */
+        .top-buttons-container {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            padding-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        .top-buttons-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #333;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .top-buttons-container button:hover {
+            background-color: #555;
+        }
+
+        /* 달력 크기 확대 */
+        #calendar-container {
+            width: 1200px;
+            margin-top: 10px;
+        }
+
+        /* 스케줄 추가 폼 및 이벤트 모달 스타일 */
+        #schedule-form, #event-modal {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none;
+        }
+
+        #schedule-form h3, #event-modal h3 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        #schedule-form label, #event-modal label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #schedule-form input, #schedule-form textarea, #event-modal input, #event-modal textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #28a745;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        #schedule-form button, #event-modal button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 버튼 색상 */
+        #close-schedule-form-btn {
+            background-color: #dc3545;
+        }
+
+        #update-event-btn {
+            background-color: #007bff;
+        }
+
+        #delete-event-btn {
+            background-color: #dc3545;
+        }
+
+        #close-event-modal-btn {
+            background-color: #6c757d;
+        }
+
+        /* 스케줄 추가 버튼 스타일 */
+        #show-schedule-form-btn {
+            padding: 6px 12px;
+            font-size: 16px;
+            color: white;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 상단 오른쪽에 위치한 로그인 및 회원가입 버튼 -->
+<div class="top-buttons-container" id="auth-buttons">
+    <!-- 로그인 전 상태 -->
+    <button id="login-button" onclick="window.location.href='login.html'">로그인</button>
+    <button id="register-button" onclick="window.location.href='register.html'">회원가입</button>
+    
+    <!-- 로그인 후 상태 (기본적으로 숨김 처리) -->
+    <button id="user-info" style="display: none;" onclick="showUserInfo()">사용자: <span id="user-id"></span></button>
+    <button id="logout-button" style="display: none;" onclick="logout()">로그아웃</button>
+</div>
+
+<!-- 스케줄 추가 폼 -->
+<div id="schedule-form">
+    <h3>스케줄 추가</h3>
+    <label for="scheduleTitle">제목</label>
+    <input type="text" id="scheduleTitle" placeholder="제목 입력" required>
+
+    <label for="scheduleDescription">설명</label>
+    <textarea id="scheduleDescription" placeholder="설명 입력"></textarea>
+
+    <label for="scheduleStartDate">시작 날짜 및 시간</label>
+    <input type="datetime-local" id="scheduleStartDate" required>
+
+    <label for="scheduleEndDate">종료 날짜 및 시간</label>
+    <input type="datetime-local" id="scheduleEndDate" required>
+
+    <button id="show-schedule-form-btn" onclick="addScheduleFromForm()">추가</button>
+    <button id="close-schedule-form-btn" onclick="toggleScheduleForm()">닫기</button>
+</div>
+
+<!-- 이벤트 수정 및 삭제 모달 -->
+<div id="event-modal">
+    <h3>스케줄 수정</h3>
+    <label for="eventTitle">제목</label>
+    <input type="text" id="eventTitle" required>
+
+    <label for="eventDescription">설명</label>
+    <textarea id="eventDescription"></textarea>
+
+    <label for="eventStartDate">시작 날짜 및 시간</label>
+    <input type="datetime-local" id="eventStartDate" required>
+
+    <label for="eventEndDate">종료 날짜 및 시간</label>
+    <input type="datetime-local" id="eventEndDate" required>
+
+    <button id="update-event-btn" onclick="updateEvent()">수정</button>
+    <button id="delete-event-btn" onclick="deleteEvent()">삭제</button>
+    <button id="close-event-modal-btn" onclick="toggleEventModal()">닫기</button>
+</div>
+
+<!-- 달력 영역 -->
+<div id="calendar-container">
+    <div id="calendar"></div>
+</div>
+
+<script>
+    let calendar;
+    let selectedEvent;
+    let colorIndex = 0;
+    const colors = ["#ff0000", "#0000ff", "#008000"]; // 빨간색, 파란색, 초록색 순서
+
+ // 로그인 상태 확인 함수
+    function checkLoginStatus() {
+        console.log("Login status checked");
+        const userId = sessionStorage.getItem('userId');
+        if (userId) {
+            // 로그인 상태일 때 버튼 변경
+            document.getElementById('login-button').style.display = 'none';
+            document.getElementById('register-button').style.display = 'none';
+            document.getElementById('user-info').style.display = 'inline';
+            document.getElementById('user-id').textContent = userId;
+            document.getElementById('logout-button').style.display = 'inline';
+        }
+    }
+
+    function logout() {
+   // 로그아웃 확인 메시지
+      const confirmLogout = confirm("정말 로그아웃하시겠습니까?");
+      if (confirmLogout) {
+        // 사용자가 로그아웃을 확인한 경우에만 로그아웃 처리
+        sessionStorage.removeItem('userId'); // sessionStorage에서 userId 삭제
+        window.location.reload(); // 페이지 새로고침하여 로그인 전 상태로 복귀
+        }
+    }
+    
+    function showUserInfo() {
+      alert("사용자 정보 페이지로 이동"); // 사용자 정보 페이지로 이동하도록 설정
+      // 사용자 정보 페이지로 이동하거나 정보 팝업을 띄우는 코드 작성
+      window.location.href = 'userInfo.html'; // 사용자 정보 페이지로 연결 시 필요
+      }
+    
+    function addScheduleFromForm() {
+        const title = document.getElementById("scheduleTitle").value;
+        const description = document.getElementById("scheduleDescription").value;
+        const startDate = document.getElementById("scheduleStartDate").value;
+        const endDate = document.getElementById("scheduleEndDate").value;
+
+        if (!title || !startDate || !endDate) {
+            alert("제목과 날짜를 모두 입력해 주세요.");
+            return;
+        }
+
+        const color = colors[colorIndex];
+        colorIndex = (colorIndex + 1) % colors.length;
+
+        const newEvent = {
+            title: title,
+            start: startDate,
+            end: endDate,
+            allDay: false,
+            backgroundColor: color,
+            borderColor: color,
+            description: description
+        };
+        console.log("Adding event to calendar:", newEvent);
+        calendar.addEvent(newEvent);
+        // 로그인 여부 확인
+        if (sessionStorage.getItem('userId')) {
+            // 로그인된 상태에서만 서버에 스케줄 저장
+            saveScheduleToDatabase(newEvent);
+        } else {
+            alert("로그인이 필요한 기능입니다. 스케줄은 DB에 저장되지 않았습니다.");
+        }
+
+        clearForm();
+    }
+    
+    function saveScheduleToDatabase(event) {
+      fetch('/SCWeb/addSchedule', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              userId: sessionStorage.getItem('userId'),
+              title: event.title,
+              description: event.description,
+              startDate: event.start,
+              endDate: event.end
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert("스케줄이 DB에 저장되었습니다.");
+          } else {
+              alert("스케줄 저장에 실패했습니다.");
+          }
+      })
+      .catch(error => console.error('Error saving schedule:', error));
+  }
+    function clearForm() {
+      document.getElementById("scheduleTitle").value = '';
+      document.getElementById("scheduleDescription").value = '';
+      document.getElementById("scheduleStartDate").value = '';
+      document.getElementById("scheduleEndDate").value = '';
+      document.getElementById("schedule-form").style.display = 'none';
+  }
+
+    function toggleScheduleForm() {
+        const form = document.getElementById("schedule-form");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    function toggleEventModal(event = null) {
+        const modal = document.getElementById("event-modal");
+        if (event) {
+            selectedEvent = event;
+            document.getElementById("eventTitle").value = event.title;
+            document.getElementById("eventDescription").value = event.extendedProps.description || '';
+            document.getElementById("eventStartDate").value = event.start.toISOString().slice(0, 16);
+            document.getElementById("eventEndDate").value = event.end ? event.end.toISOString().slice(0, 16) : event.start.toISOString().slice(0, 16);
+        }
+        modal.style.display = modal.style.display === "none" ? "block" : "none";
+    }
+
+    function updateEvent() {
+        const newTitle = document.getElementById("eventTitle").value;
+        const newDescription = document.getElementById("eventDescription").value;
+        const newStartDate = document.getElementById("eventStartDate").value;
+        const newEndDate = document.getElementById("eventEndDate").value;
+
+        if (selectedEvent) {
+            selectedEvent.setProp("title", newTitle);
+            selectedEvent.setDates(newStartDate, newEndDate);
+            selectedEvent.setExtendedProp("description", newDescription);
+            alert("스케줄이 수정되었습니다!");
+            toggleEventModal();
+        }
+    }
+
+    function deleteEvent() {
+        if (selectedEvent) {
+            selectedEvent.remove();
+            alert("스케줄이 삭제되었습니다!");
+            toggleEventModal();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // 로그인 상태 확인
+        console.log("Checking login status"); // 함수 실행 확인
+        checkLoginStatus();
+        console.log(sessionStorage.getItem("userId"));// sessionStorage에 저장된 값 확인
+        const calendarEl = document.getElementById('calendar');
+     // 달력 요소 설정 및 렌더링
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            editable: true,
+            customButtons: {
+                addSchedule: {
+                    text: '스케줄 추가',
+                    click: toggleScheduleForm
+                }
+            },
+            headerToolbar: {
+                left: 'prev,next today addSchedule',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: [],  // 서버에서 불러온 스케줄을 여기에 추가
+            eventClick: function(info) {
+                toggleEventModal(info.event);
+            }
+        });
+
+        calendar.render();
+        loadSchedules();
+    });
+    
+    function loadSchedules() {
+      const userId = sessionStorage.getItem("userId")
+      console.log("Fetched userId from sessionStorage:", userId);
+      if (!userId) return;  // 로그인되지 않은 경우 종료
+
+      // 서버에 요청하여 사용자의 스케줄 불러오기
+      fetch('/SCWeb/loadSchedules?userId=' + userId)
+          .then(response => response.json())
+          .then(data => {
+            console.log("Loaded schedules data:", data); // 데이터 확인용
+              // 받아온 스케줄 데이터를 캘린더에 추가
+            const events = data.schedules || [];  // data.schedules가 배열이면 사용, 그렇지 않으면 빈 배열
+            events.forEach(event => {
+              const newEvent = {
+                  title: event.title,
+                  start: new Date(event.startDate),  // 서버에서 startDate로 전달된 부분을 start로 매핑
+                  end: new Date(event.endDate),      // 서버에서 endDate로 전달된 부분을 end로 매핑
+                  allDay: false,
+                  backgroundColor: event.userId === userId ? "#3788d8" : "#ffcc00", // 친구 스케줄은 다른 색상
+                  borderColor: event.userId === userId ? "#3788d8" : "#ffcc00",
+                  description: event.description
+              };
+              console.log("Adding event to calendar:", newEvent); // 각 이벤트 추가 전 확인
+              calendar.addEvent(newEvent);
+            });
+          })
+          .catch(error => {
+              console.error('Error loading schedules:', error);
+              alert('스케줄을 불러오는 중 오류가 발생했습니다.');
+          });
+  }
+</script>
+</body>
+</html>

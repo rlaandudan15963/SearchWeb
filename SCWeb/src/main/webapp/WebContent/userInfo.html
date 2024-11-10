@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 정보</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            margin-top: 50px;
+            background-color: #f8f9fa;
+        }
+
+        /* 회원 정보 스타일 */
+        .user-info-container {
+            width: 400px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-right: 20px;
+        }
+
+        .user-info-container h2 {
+            margin-bottom: 20px;
+        }
+
+        .user-info-container p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        /* 돌아가기 버튼 */
+        .back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 친구 목록 스타일 */
+        .friends-container {
+            width: 250px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .friends-container h3 {
+            margin-bottom: 20px;
+        }
+
+        .friend-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .friend-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="user-info-container">
+    <h2>회원 정보</h2>
+    <p>아이디: <span id="user-id"></span></p>
+    <p>이메일: <span id="user-email"></span></p>
+    <p>이름: <span id="user-name"></span></p>
+    <p>나이: <span id="user-age"></span></p>
+    <p>전화번호: <span id="user-phone"></span></p>
+    <a href="schedule.html" class="back-button">돌아가기</a>
+</div>
+
+<div class="friends-container">
+    <h3>친구 목록</h3>
+    <div id="friends-list">
+        <!-- 친구 목록이 여기에 표시됩니다. -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("Fetching user info...");
+  fetchUserInfo();
+});
+    function fetchUserInfo() {
+        fetch('/SCWeb/userInfo', { method: 'GET' })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then(data => {
+              console.log("User data received:", data); // 데이터 확인용
+                // 데이터가 올바르게 로드되었는지 확인
+                if (data.user) {
+                    // 사용자 정보 표시
+                    document.getElementById('user-id').textContent = data.user.userId || "N/A";
+                    document.getElementById('user-email').textContent = data.user.email || "N/A";
+                    document.getElementById('user-name').textContent = data.user.name || "N/A";
+                    document.getElementById('user-age').textContent = data.user.age || "N/A";
+                    document.getElementById('user-phone').textContent = data.user.phoneNum || "N/A";
+
+                 // 친구 목록 표시
+                    const friendsList = document.getElementById('friends-list');
+                    friendsList.innerHTML = ''; // 초기화
+                    data.friends.forEach(friend => {
+                        const friendItem = document.createElement('li');
+                        friendItem.textContent = `아이디: ${friend.friendId} - 공유 상태: ${friend.shareStatus === 1 ? '공유 중' : '공유 안 함'}`;
+
+                        // 공유 상태 토글 버튼 추가
+                        const toggleButton = document.createElement('button');
+                        toggleButton.textContent = friend.shareStatus === 1 ? '공유 끄기' : '공유 켜기';
+                        toggleButton.onclick = () => toggleShareStatus(friend.friendId, friend.shareStatus === 1 ? 0 : 1);
+                        friendItem.appendChild(toggleButton);
+
+                        friendsList.appendChild(friendItem);
+                    });
+                    } else {
+                      const friendsListContainer = document.getElementById('friends-list-container');
+                      friendsListContainer.innerHTML = "<p>친구가 없습니다.</p>";
+                  }
+              })
+              .catch(error => {
+                  console.error('Error fetching user info:', error);
+                  alert('사용자 정보를 불러오는 중 오류가 발생했습니다.');
+              });
+    }
+    function toggleShareStatus(friendId, currentStatus) {
+      const newStatus = currentStatus === 1 ? 0 : 1;
+
+      fetch('/SCWeb/toggleFriendShare', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+              userId: sessionStorage.getItem('userId'), // 현재 로그인된 사용자 ID
+              friendId: friendId,
+              shareStatus: newStatus
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert('공유 상태가 업데이트되었습니다.');
+              window.location.reload(); // 페이지를 새로고침하여 업데이트된 상태를 반영
+          } else {
+              alert('공유 상태 업데이트에 실패했습니다.');
+          }
+      })
+      .catch(error => {
+          console.error('Error updating share status:', error);
+          alert('공유 상태 업데이트 중 오류가 발생했습니다.');
+      });
+  }
+</script>
+
+</body>
+</html>
