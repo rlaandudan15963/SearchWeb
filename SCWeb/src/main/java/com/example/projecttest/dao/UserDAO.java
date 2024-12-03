@@ -184,4 +184,143 @@ public class UserDAO {
       }
       return schedules;
   }
+  //전화번호 중복 체크(아래 수정이나 회원가입때 중복 체크로 사용할 예정)
+    public boolean isPhoneNumberUnique(String phoneNum) {
+      String sql = "SELECT COUNT(*) FROM WEB_USER WHERE USER_PhoneNum = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, phoneNum);
+          try (ResultSet rs = stmt.executeQuery()) {
+              if (rs.next()) {
+                  return rs.getInt(1) == 0; // 중복되지 않으면 true
+              }
+          }
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+      return false;
+  }
+    //회원 정보 수정하기위한 DB sql 업데이트 문(수정 내용 : 비밀번호, 이메일, 이름, 나이, 폰번호)
+    public boolean updateUserDetails(String userId, String password, String email, String name, int age, String phoneNum) {
+      String sql = "UPDATE WEB_USER SET USER_Password = ?, USER_Email = ?, USER_Name = ?, USER_Age = ?, USER_PhoneNum = ? WHERE USER_ID = ?";
+
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, password); // 비밀번호 업데이트
+          stmt.setString(2, email);
+          stmt.setString(3, name);
+          stmt.setInt(4, age);
+          stmt.setString(5, phoneNum);
+          stmt.setString(6, userId);
+
+          int rowsUpdated = stmt.executeUpdate();
+          return rowsUpdated > 0;
+      } catch (SQLException e) {
+          e.printStackTrace();
+          return false;
+      }
+  }
+    // 친구 추가용(회원ID로 검색을 상정하고 작성)
+    public boolean addFriend(String userId, String friendId) {
+      String sql = "INSERT INTO FRIEND (USER_ID, FRIEND_ID, SHARE_IS) VALUES (?, ?, 0)";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, userId);
+          stmt.setString(2, friendId);
+
+          int rowsInserted = stmt.executeUpdate();
+          return rowsInserted > 0;
+      } catch (SQLException e) {
+          e.printStackTrace();
+          return false;
+      }
+  }
+    // 친구 중복 확인 (사용자 ID와 친구 ID 필요) 팀장 개인의 생각으론 어떻게 구현할진 모르지만 필요하면 쓰세요 
+    public boolean isFriendUnique(String userId, String friendId) {
+      String sql = "SELECT COUNT(*) FROM FRIEND WHERE USER_ID = ? AND FRIEND_ID = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, userId);
+          stmt.setString(2, friendId);
+
+          try (ResultSet rs = stmt.executeQuery()) {
+              if (rs.next()) {
+                  return rs.getInt(1) == 0; // 0이면 중복되지 않음
+              }
+          }
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+      return false;
+  }
+    //친구 삭제 기능(회원 ID, 친구 ID 
+    public boolean removeFriend(String userId, String friendId) {
+      String sql = "DELETE FROM FRIEND WHERE USER_ID = ? AND FRIEND_ID = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, userId);
+          stmt.setString(2, friendId);
+          int rowsDeleted = stmt.executeUpdate();
+          return rowsDeleted > 0;
+      } catch (SQLException e) {
+          e.printStackTrace();
+          return false;
+      }
+  }
+    //스케줄 수정 (model의 스케줄을 사용함)
+    public boolean updateSchedule(Schedule schedule) {
+      String sql = "UPDATE SCHEDULE SET TITLE = ?, DESCRIPTION = ?, START_DATE = ?, END_DATE = ? WHERE SCHEDULE_ID = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setString(1, schedule.getTitle());
+          stmt.setString(2, schedule.getDescription());
+          stmt.setString(3, schedule.getStartDate());
+          stmt.setString(4, schedule.getEndDate());
+          stmt.setInt(5, schedule.getScheduleId());
+
+          int rowsUpdated = stmt.executeUpdate();
+          return rowsUpdated > 0;
+      } catch (SQLException e) {
+          e.printStackTrace();
+          return false;
+      }
+  }
+    //스케줄 소유자 확인을 위해 스케줄 ID로 스케줄을 가져오는 기능
+    public Schedule getScheduleById(int scheduleId) {
+      String sql = "SELECT * FROM SCHEDULE WHERE SCHEDULE_ID = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setInt(1, scheduleId);
+
+          try (ResultSet rs = stmt.executeQuery()) {
+              if (rs.next()) {
+                  Schedule schedule = new Schedule();
+                  schedule.setScheduleId(rs.getInt("SCHEDULE_ID"));
+                  schedule.setUserId(rs.getString("USER_ID"));
+                  schedule.setTitle(rs.getString("TITLE"));
+                  schedule.setDescription(rs.getString("DESCRIPTION"));
+                  schedule.setStartDate(rs.getString("START_DATE"));
+                  schedule.setEndDate(rs.getString("END_DATE"));
+                  return schedule;
+              }
+          }
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+      return null;
+  }
+    //스케줄 삭제 (스케줄ID를 사용함)
+    public boolean deleteSchedule(int scheduleId) {
+      String sql = "DELETE FROM SCHEDULE WHERE SCHEDULE_ID = ?";
+      try (Connection conn = DBConnect.getConnection();
+           PreparedStatement stmt = conn.prepareStatement(sql)) {
+          stmt.setInt(1, scheduleId);
+
+          int rowsDeleted = stmt.executeUpdate();
+          return rowsDeleted > 0;
+      } catch (SQLException e) {
+          e.printStackTrace();
+          return false;
+      }
+  }
 }

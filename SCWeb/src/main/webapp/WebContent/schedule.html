@@ -183,7 +183,7 @@
     let calendar;
     let selectedEvent;
     let colorIndex = 0;
-    const colors = ["#ff0000", "#0000ff", "#008000"]; // 빨간색, 파란색, 초록색 순서
+    const colors = ["#ff0000", "#0000ff", "#008000", "#800080", "#ffa500", "#00ced1", "#ff69b4", "#4682b4", "#dc143c", "#32cd32", "#4169e1", "#ff4500"]; // 빨간색, 파란색, 초록색... 순서
 
  // 로그인 상태 확인 함수
     function checkLoginStatus() {
@@ -367,13 +367,17 @@
               // 받아온 스케줄 데이터를 캘린더에 추가
             const events = data.schedules || [];  // data.schedules가 배열이면 사용, 그렇지 않으면 빈 배열
             events.forEach(event => {
+           // 사용자 일정: 색상 순환
+              const eventColor = event.userId === userId 
+                  ? colors[colorIndex++ % colors.length] // 사용자 일정은 순환 색상
+                  : "#ffcc00"; // 친구 일정은 고정된 노란색
               const newEvent = {
                   title: event.title,
                   start: new Date(event.startDate),  // 서버에서 startDate로 전달된 부분을 start로 매핑
                   end: new Date(event.endDate),      // 서버에서 endDate로 전달된 부분을 end로 매핑
                   allDay: false,
-                  backgroundColor: event.userId === userId ? "#3788d8" : "#ffcc00", // 친구 스케줄은 다른 색상
-                  borderColor: event.userId === userId ? "#3788d8" : "#ffcc00",
+                  backgroundColor: eventColor,
+                  borderColor: eventColor,
                   description: event.description
               };
               console.log("Adding event to calendar:", newEvent); // 각 이벤트 추가 전 확인
